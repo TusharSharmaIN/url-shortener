@@ -28,10 +28,10 @@ export class UrlsController {
 
   @Get(':code')
   async redirect(@Param('code') code: string, @Res() res: Response) {
-    const url = await this.urlsService.findByShortCode(code);
-    if (!url) {
+    const longUrl = await this.urlsService.findByShortCode(code);
+    if (!longUrl) {
       throw new NotFoundException('URL not found');
     }
-    return res.redirect(302, url.longUrl);
+    return res.redirect(302, longUrl);
   }
 }
