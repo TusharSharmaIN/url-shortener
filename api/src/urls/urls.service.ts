@@ -22,4 +22,8 @@ export class UrlsService {
     saved.shortCode = toBase62(saved.id);
     return this.urlsRepository.save(saved);
   }
+
+  async findByShortCode(shortCode: string): Promise<Url | null> {
+    return this.urlsRepository.findOneBy({ shortCode });
+  }
 }
