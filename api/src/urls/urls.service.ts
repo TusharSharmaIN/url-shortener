@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type Redis from 'ioredis';
@@ -11,6 +11,8 @@ const STREAM_KEY = 'clicks-stream';
 
 @Injectable()
 export class UrlsService {
+  private readonly logger = new Logger(UrlsService.name);
+
   constructor(
     @InjectRepository(Url)
     private readonly urlsRepository: Repository<Url>,
@@ -33,12 +35,12 @@ export class UrlsService {
   async findByShortCode(shortCode: string): Promise<string | null> {
     const cached = await this.redis.get(`shortcode:${shortCode}`);
     if (cached) {
-      console.log(`[cache HIT] ${shortCode}`);
+      this.logger.log(`Cache HIT for ${shortCode}`);
       this.recordClick(shortCode);
       return cached;
     }
 
-    console.log(`[cache MISS] ${shortCode}`);
+    this.logger.log(`Cache MISS for ${shortCode}`);
     const url = await this.urlsRepository.findOneBy({ shortCode });
     if (!url) return null;
 
@@ -52,6 +54,14 @@ export class UrlsService {
     return url.longUrl;
   }
 
+  async getStats(shortCode: string): Promise<{ shortCode: string; totalClicks: number }> {
+    const result = await this.urlsRepository.query(
+      `SELECT COUNT(*) as count FROM clicks WHERE short_code = $1`,
+      [shortCode],
+    );
+    return { shortCode, totalClicks: parseInt(result[0].count, 10) };
+  }
+
   private recordClick(shortCode: string): void {
     this.redis
       .xadd(
@@ -62,6 +72,6 @@ export class UrlsService {
         'timestamp',
         Date.now().toString(),
       )
-      .catch((err) => console.error('Failed to record click event', err));
+      .catch((err) => this.logger.error('Failed to record click event', err));
   }
 }

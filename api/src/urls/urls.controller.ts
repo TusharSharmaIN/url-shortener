@@ -26,6 +26,11 @@ export class UrlsController {
     };
   }
 
+  @Get('stats/:code')
+  async stats(@Param('code') code: string) {
+    return this.urlsService.getStats(code);
+  }
+
   @Get(':code')
   async redirect(@Param('code') code: string, @Res() res: Response) {
     const longUrl = await this.urlsService.findByShortCode(code);

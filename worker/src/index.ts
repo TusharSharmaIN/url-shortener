@@ -1,11 +1,7 @@
 import "dotenv/config";
-console.log(
-  "DEBUG password type:",
-  typeof process.env.POSTGRES_PASSWORD,
-  process.env.POSTGRES_PASSWORD,
-);
 import Redis from "ioredis";
 import { insertClicks } from "./db";
+import { logger } from "./logger";
 
 const redis = new Redis({
   host: process.env.REDIS_HOST || "localhost",
@@ -21,10 +17,10 @@ const BLOCK_MS = 5000;
 async function ensureConsumerGroup() {
   try {
     await redis.xgroup("CREATE", STREAM_KEY, GROUP_NAME, "$", "MKSTREAM");
-    console.log("Consumer group created");
+    logger.info("Consumer group created");
   } catch (err: any) {
     if (err.message.includes("BUSYGROUP")) {
-      console.log("Consumer group already exists, continuing.");
+      logger.info("Consumer group already exists, continuing.");
     } else {
       throw err;
     }
@@ -49,11 +45,11 @@ async function reclaimPendingEntries() {
 
   const [[, entries]] = response as any;
   if (entries.length === 0) {
-    console.log("No pending entries to reclaim.");
+    logger.info("No pending entries to reclaim.");
     return;
   }
 
-  console.log(
+  logger.info(
     `Reclaiming ${entries.length} pending entrie(s) from before restart...`,
   );
 
@@ -66,7 +62,7 @@ async function reclaimPendingEntries() {
 
   await insertClicks(events);
   await redis.xack(STREAM_KEY, GROUP_NAME, ...entryIds);
-  console.log(
+  logger.info(
     `Reclaimed and acked ${events.length} previously-pending click(s).`,
   );
 }
@@ -105,25 +101,25 @@ async function processLoop() {
       await insertClicks(events);
       // XACK: tell Redis "these entries are fully processed, stop tracking them as pending."
       await redis.xack(STREAM_KEY, GROUP_NAME, ...entryIds);
-      console.log(`Processed and acked ${events.length} click(s).`);
+      logger.info(`Processed and acked ${events.length} click(s).`);
     } catch (err) {
       // Deliberately DON'T XACK here — if insert fails, entries stay "pending"
       // and will be re-claimed/retried on next restart. This is the durability guarantee.
-      console.error("Failed to process batch, will retry on restart:", err);
+      logger.error("Failed to process batch, will retry on restart:", err);
     }
   }
 }
 
 async function main() {
   const pong = await redis.ping();
-  console.log("Worker connected to Redis:", pong);
+  logger.info(`Worker connected to Redis: ${pong}`);
   await ensureConsumerGroup();
   await reclaimPendingEntries();
-  console.log("Starting read loop...");
+  logger.info("Starting read loop...");
   await processLoop();
 }
 
 main().catch((err) => {
-  console.error("Worker failed to start:", err);
+  logger.error("Worker failed to start:", err);
   process.exit(1);
 });
