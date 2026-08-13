@@ -8,6 +8,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { UseGuards } from '@nestjs/common';
+import { RateLimitGuard } from '../rate-limit/rate-limit.guard';
 import { UrlsService } from './urls.service';
 import { CreateUrlDto } from './dto/create-url.dto';
 
@@ -15,6 +17,7 @@ import { CreateUrlDto } from './dto/create-url.dto';
 export class UrlsController {
   constructor(private readonly urlsService: UrlsService) {}
 
+  @UseGuards(RateLimitGuard)
   @Post('shorten')
   async shorten(@Body() dto: CreateUrlDto) {
     const url = await this.urlsService.shorten(dto.longUrl);
@@ -31,6 +34,7 @@ export class UrlsController {
     return this.urlsService.getStats(code);
   }
 
+  @UseGuards(RateLimitGuard)
   @Get(':code')
   async redirect(@Param('code') code: string, @Res() res: Response) {
     const longUrl = await this.urlsService.findByShortCode(code);

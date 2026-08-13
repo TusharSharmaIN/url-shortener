@@ -11,7 +11,7 @@ restart:
 logs:
 	docker compose logs -f
 ps:
-	docker compose ps
+	docker compose ps -a
 clean:
 	docker compose down -v
 psql:
