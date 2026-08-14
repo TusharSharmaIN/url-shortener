@@ -7,6 +7,7 @@ import { toBase62 } from './utils/base62.util';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import type { Producer } from 'kafkajs';
 import { KAFKA_PRODUCER } from '../kafka/kafka.module';
+import { Click } from './models/click.entity';
 
 const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
 const STREAM_KEY = 'clicks-stream';
@@ -19,6 +20,8 @@ export class UrlsService {
   constructor(
     @InjectRepository(Url)
     private readonly urlsRepository: Repository<Url>,
+    @InjectRepository(Click)
+    private readonly clicksRepository: Repository<Click>,
     @Inject(REDIS_CLIENT)
     private readonly redis: Redis,
     @Inject(KAFKA_PRODUCER)
@@ -62,11 +65,10 @@ export class UrlsService {
   async getStats(
     shortCode: string,
   ): Promise<{ shortCode: string; totalClicks: number }> {
-    const result = await this.urlsRepository.query(
-      `SELECT COUNT(*) as count FROM clicks WHERE short_code = $1`,
-      [shortCode],
-    );
-    return { shortCode, totalClicks: parseInt(result[0].count, 10) };
+    const totalClicks = await this.clicksRepository.count({
+      where: { shortCode },
+    });
+    return { shortCode, totalClicks };
   }
 
   private recordClick(shortCode: string): void {
