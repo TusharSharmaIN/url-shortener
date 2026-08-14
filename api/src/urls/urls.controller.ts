@@ -35,7 +35,11 @@ export class UrlsController {
     };
   }
 
-  @ApiOperation({ summary: 'Redirect to the original URL' })
+  @ApiOperation({
+    summary: 'Redirect to the original URL',
+    description:
+      'Returns a 302 redirect. Browser-based testing tools may show a fetch/CORS error when the redirect target is cross-origin — this is expected; test with curl -i to see the raw response.',
+  })
   @ApiParam({ name: 'code', example: '1' })
   @ApiResponse({ status: 302, description: 'Redirects to the long URL' })
   @ApiResponse({ status: 404, description: 'Short code not found' })

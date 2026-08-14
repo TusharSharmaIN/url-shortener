@@ -58,7 +58,7 @@ make ps
 make logs
 ```
 
-API available at `http://localhost:3000`.
+API available at `https://url-shortener-api-oy1d.onrender.com/`.
 
 | Endpoint | Description |
 |---|---|
@@ -78,10 +78,6 @@ API available at `http://localhost:3000`.
 | `RATE_LIMIT_ALGORITHM` | `fixed` \| `sliding` | switches the rate-limit strategy |
 | `RATE_LIMIT_LIMIT` / `RATE_LIMIT_WINDOW_SECONDS` | `5` / `60` | requests per window |
 
-## What I'd change for production
+## Note
 
-- Real migrations instead of TypeORM `synchronize: true`
-- Move the `INSERT` on shorten from two round-trips to one (using `nextval()` upfront instead of insert-then-update)
-- Key rate limiting by API key/user, not just IP
-- Metrics/tracing (this project stopped at structured logs)
-- Drop Kafka from any low-resource deployment — Redis Streams alone is the pragmatic choice at this scale
+The /:code endpoint returns a 302 redirect; browser-based tools (like this Swagger page) may show a fetch/CORS error when following it to an external domain — test with curl -i instead to see the raw redirect response
