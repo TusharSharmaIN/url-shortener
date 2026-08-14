@@ -1,14 +1,14 @@
-import { Kafka } from 'kafkajs';
-import { insertClicks } from './db';
-import { logger } from './logger';
+import { Kafka } from "kafkajs";
+import { insertClicks } from "./db";
+import { logger } from "./logger";
 
-const TOPIC = 'clicks-topic';
-const GROUP_ID = 'clicks-consumer-group-kafka';
+const TOPIC = "clicks-topic";
+const GROUP_ID = "clicks-consumer-group-kafka";
 
 export async function startKafkaConsumer() {
   const kafka = new Kafka({
-    clientId: 'url-shortener-worker',
-    brokers: [process.env.KAFKA_BROKER || 'localhost:9092'],
+    clientId: "url-shortener-worker",
+    brokers: [process.env.KAFKA_BROKER || "localhost:9092"],
   });
 
   const consumer = kafka.consumer({
@@ -18,7 +18,7 @@ export async function startKafkaConsumer() {
   await consumer.connect();
   await consumer.subscribe({ topic: TOPIC, fromBeginning: true });
 
-  logger.info('Kafka consumer connected and subscribed.');
+  logger.info("Kafka consumer connected and subscribed.");
 
   await consumer.run({
     autoCommit: false, // we commit manually, only after a successful DB write
@@ -42,7 +42,10 @@ export async function startKafkaConsumer() {
         ]);
         logger.info(`Processed and committed click for ${event.shortCode}`);
       } catch (err) {
-        logger.error('Failed to process Kafka message, will retry on restart', err);
+        logger.error(
+          "Failed to process Kafka message, will retry on restart",
+          err,
+        );
         // deliberately don't commit — on restart, consumer resumes from last committed offset
       }
     },

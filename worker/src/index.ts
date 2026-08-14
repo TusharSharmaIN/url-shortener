@@ -2,7 +2,7 @@ import "dotenv/config";
 import Redis from "ioredis";
 import { insertClicks } from "./db";
 import { logger } from "./logger";
-import { startKafkaConsumer } from './kafka-consumer';
+import { startKafkaConsumer } from "./kafka-consumer";
 
 const redis = new Redis({
   host: process.env.REDIS_HOST || "localhost",
@@ -116,12 +116,12 @@ async function main() {
   logger.info(`Worker connected to Redis: ${pong}`);
   await ensureConsumerGroup();
   await reclaimPendingEntries();
-  
-  if (process.env.ANALYTICS_TRANSPORT === 'kafka') {
-    logger.info('Starting Kafka consumer...');
+
+  if (process.env.ANALYTICS_TRANSPORT === "kafka") {
+    logger.info("Starting Kafka consumer...");
     await startKafkaConsumer();
   } else {
-    logger.info('Starting Redis Streams read loop...');
+    logger.info("Starting Redis Streams read loop...");
     await processLoop();
   }
 }

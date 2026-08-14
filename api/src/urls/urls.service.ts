@@ -2,8 +2,8 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type Redis from 'ioredis';
-import { Url } from './url.entity';
-import { toBase62 } from './base62.util';
+import { Url } from './models/url.entity';
+import { toBase62 } from './utils/base62.util';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import type { Producer } from 'kafkajs';
 import { KAFKA_PRODUCER } from '../kafka/kafka.module';
@@ -59,7 +59,9 @@ export class UrlsService {
     return url.longUrl;
   }
 
-  async getStats(shortCode: string): Promise<{ shortCode: string; totalClicks: number }> {
+  async getStats(
+    shortCode: string,
+  ): Promise<{ shortCode: string; totalClicks: number }> {
     const result = await this.urlsRepository.query(
       `SELECT COUNT(*) as count FROM clicks WHERE short_code = $1`,
       [shortCode],
@@ -70,17 +72,31 @@ export class UrlsService {
   private recordClick(shortCode: string): void {
     const eventPayload = { shortCode, timestamp: Date.now().toString() };
 
-    if (process.env.ANALYTICS_TRANSPORT === 'kafka') {
+    if (process.env.ANALYTICS_TRANSPORT === 'kafka' && this.kafkaProducer) {
       this.kafkaProducer
         .send({
           topic: TOPIC,
           messages: [{ value: JSON.stringify(eventPayload) }],
         })
-        .catch((err) => this.logger.error('Failed to send click event to Kafka', err));
+        .catch((err) =>
+          this.logger.error('Failed to send click event to Kafka', err),
+        );
     } else {
       this.redis
-        .xadd('clicks-stream', '*', 'shortCode', shortCode, 'timestamp', eventPayload.timestamp)
-        .catch((err) => this.logger.error('Failed to record click event to Redis Stream', err));
+        .xadd(
+          'clicks-stream',
+          '*',
+          'shortCode',
+          shortCode,
+          'timestamp',
+          eventPayload.timestamp,
+        )
+        .catch((err) =>
+          this.logger.error(
+            'Failed to record click event to Redis Stream',
+            err,
+          ),
+        );
     }
   }
 }

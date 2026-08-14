@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type Redis from 'ioredis';
-import { Url } from './url.entity';
+import { Url } from './models/url.entity';
 import { REDIS_CLIENT } from '../redis/redis.module';
 
 const STREAM_KEY = 'clicks-stream';
@@ -33,21 +33,43 @@ export class ClickConsumerService implements OnModuleInit {
 
   private async ensureConsumerGroup() {
     try {
-      await this.redis.xgroup('CREATE', STREAM_KEY, GROUP_NAME, '$', 'MKSTREAM');
+      await this.redis.xgroup(
+        'CREATE',
+        STREAM_KEY,
+        GROUP_NAME,
+        '$',
+        'MKSTREAM',
+      );
     } catch (err: any) {
       if (!err.message.includes('BUSYGROUP')) throw err;
     }
   }
 
-  private async insertClicks(events: { shortCode: string; timestamp: string }[]) {
+  private async insertClicks(
+    events: { shortCode: string; timestamp: string }[],
+  ) {
     if (events.length === 0) return;
-    const values = events.map((e) => `('${e.shortCode}', to_timestamp(${Number(e.timestamp) / 1000}))`).join(', ');
-    await this.urlsRepository.query(`INSERT INTO clicks (short_code, clicked_at) VALUES ${values}`);
+    const values = events
+      .map(
+        (e) =>
+          `('${e.shortCode}', to_timestamp(${Number(e.timestamp) / 1000}))`,
+      )
+      .join(', ');
+    await this.urlsRepository.query(
+      `INSERT INTO clicks (short_code, clicked_at) VALUES ${values}`,
+    );
   }
 
   private async reclaimPendingEntries() {
     const response: any = await this.redis.xreadgroup(
-      'GROUP', GROUP_NAME, CONSUMER_NAME, 'COUNT', BATCH_SIZE, 'STREAMS', STREAM_KEY, '0',
+      'GROUP',
+      GROUP_NAME,
+      CONSUMER_NAME,
+      'COUNT',
+      BATCH_SIZE,
+      'STREAMS',
+      STREAM_KEY,
+      '0',
     );
     if (!response) return;
     const [[, entries]] = response;
@@ -69,15 +91,24 @@ export class ClickConsumerService implements OnModuleInit {
     while (true) {
       try {
         const response: any = await this.redis.xreadgroup(
-          'GROUP', GROUP_NAME, CONSUMER_NAME, 'COUNT', BATCH_SIZE, 'BLOCK', BLOCK_MS,
-          'STREAMS', STREAM_KEY, '>',
+          'GROUP',
+          GROUP_NAME,
+          CONSUMER_NAME,
+          'COUNT',
+          BATCH_SIZE,
+          'BLOCK',
+          BLOCK_MS,
+          'STREAMS',
+          STREAM_KEY,
+          '>',
         );
         if (!response) continue;
 
         const [[, entries]] = response;
         const events = entries.map(([, fields]: [string, string[]]) => {
           const obj: Record<string, string> = {};
-          for (let i = 0; i < fields.length; i += 2) obj[fields[i]] = fields[i + 1];
+          for (let i = 0; i < fields.length; i += 2)
+            obj[fields[i]] = fields[i + 1];
           return { shortCode: obj.shortCode, timestamp: obj.timestamp };
         });
         const entryIds = entries.map(([id]: [string]) => id);

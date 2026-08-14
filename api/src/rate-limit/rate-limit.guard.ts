@@ -24,11 +24,22 @@ export class RateLimitGuard implements CanActivate {
 
     const result =
       algorithm === 'sliding'
-        ? await this.rateLimitService.checkSlidingWindow(key, limit, windowSeconds)
-        : await this.rateLimitService.checkFixedWindow(key, limit, windowSeconds);
-        
+        ? await this.rateLimitService.checkSlidingWindow(
+            key,
+            limit,
+            windowSeconds,
+          )
+        : await this.rateLimitService.checkFixedWindow(
+            key,
+            limit,
+            windowSeconds,
+          );
+
     if (!result.allowed) {
-      throw new HttpException('Too many requests', HttpStatus.TOO_MANY_REQUESTS);
+      throw new HttpException(
+        'Too many requests',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
 
     return true;

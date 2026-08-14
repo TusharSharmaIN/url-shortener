@@ -20,7 +20,7 @@ import { KafkaModule } from './kafka/kafka.module';
     }),
     UrlsModule,
     RedisModule,
-    KafkaModule
+    KafkaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
