@@ -22,7 +22,7 @@ export class UrlsService {
     @Inject(REDIS_CLIENT)
     private readonly redis: Redis,
     @Inject(KAFKA_PRODUCER)
-    private readonly kafkaProducer: Producer,
+    private readonly kafkaProducer: Producer | null,
   ) {}
 
   async shorten(longUrl: string): Promise<Url> {
