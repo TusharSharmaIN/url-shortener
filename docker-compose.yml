@@ -68,6 +68,7 @@ services:
       RATE_LIMIT_ALGORITHM: ${RATE_LIMIT_ALGORITHM}
       RATE_LIMIT_LIMIT: ${RATE_LIMIT_LIMIT}
       RATE_LIMIT_WINDOW_SECONDS: ${RATE_LIMIT_WINDOW_SECONDS}
+      ANALYTICS_TRANSPORT: ${ANALYTICS_TRANSPORT}
     depends_on:
       postgres:
         condition: service_healthy
@@ -88,6 +89,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BROKER: kafka:9092
+      ANALYTICS_TRANSPORT: ${ANALYTICS_TRANSPORT}
     depends_on:
       postgres:
         condition: service_healthy

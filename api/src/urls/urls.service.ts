@@ -5,9 +5,12 @@ import type Redis from 'ioredis';
 import { Url } from './url.entity';
 import { toBase62 } from './base62.util';
 import { REDIS_CLIENT } from '../redis/redis.module';
+import type { Producer } from 'kafkajs';
+import { KAFKA_PRODUCER } from '../kafka/kafka.module';
 
 const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
 const STREAM_KEY = 'clicks-stream';
+const TOPIC = 'clicks-topic';
 
 @Injectable()
 export class UrlsService {
@@ -18,6 +21,8 @@ export class UrlsService {
     private readonly urlsRepository: Repository<Url>,
     @Inject(REDIS_CLIENT)
     private readonly redis: Redis,
+    @Inject(KAFKA_PRODUCER)
+    private readonly kafkaProducer: Producer,
   ) {}
 
   async shorten(longUrl: string): Promise<Url> {
@@ -63,15 +68,19 @@ export class UrlsService {
   }
 
   private recordClick(shortCode: string): void {
-    this.redis
-      .xadd(
-        STREAM_KEY,
-        '*',
-        'shortCode',
-        shortCode,
-        'timestamp',
-        Date.now().toString(),
-      )
-      .catch((err) => this.logger.error('Failed to record click event', err));
+    const eventPayload = { shortCode, timestamp: Date.now().toString() };
+
+    if (process.env.ANALYTICS_TRANSPORT === 'kafka') {
+      this.kafkaProducer
+        .send({
+          topic: TOPIC,
+          messages: [{ value: JSON.stringify(eventPayload) }],
+        })
+        .catch((err) => this.logger.error('Failed to send click event to Kafka', err));
+    } else {
+      this.redis
+        .xadd('clicks-stream', '*', 'shortCode', shortCode, 'timestamp', eventPayload.timestamp)
+        .catch((err) => this.logger.error('Failed to record click event to Redis Stream', err));
+    }
   }
 }

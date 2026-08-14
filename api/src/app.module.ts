@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UrlsModule } from './urls/urls.module';
 import { RedisModule } from './redis/redis.module';
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { RedisModule } from './redis/redis.module';
     }),
     UrlsModule,
     RedisModule,
+    KafkaModule
   ],
   controllers: [AppController],
   providers: [AppService],
