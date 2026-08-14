@@ -27,10 +27,10 @@ export class UrlsController {
   @Post('shorten')
   async shorten(@Body() dto: CreateUrlDto) {
     const url = await this.urlsService.shorten(dto.longUrl);
+    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
     return {
       shortCode: url.shortCode,
-      //   shortUrl: `${process.env.APP_URL}/${url.shortCode}`,
-      shortUrl: `http://localhost:3000/${url.shortCode}`,
+      shortUrl: `${baseUrl}/${url.shortCode}`,
       longUrl: url.longUrl,
     };
   }
