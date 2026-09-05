@@ -1,6 +1,6 @@
 .PHONY: up down restart logs ps clean psql redis-cli
 
-build_up:
+up-d:
 	docker compose up -d --build
 up:
 	docker compose up -d
