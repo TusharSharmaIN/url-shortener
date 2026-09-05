@@ -64,7 +64,7 @@ export function ResultPanel({
             onClick={onRefreshStats}
             className="rounded-md border border-line px-3 py-1.5 text-xs text-ink transition-colors hover:border-accent hover:text-accent"
           >
-            Check clicks
+            Get clicks
           </button>
         </div>
       </div>

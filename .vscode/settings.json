@@ -7,7 +7,12 @@
   "folder-color.pathColors": [
     {
       "folderPath": "url-shortener/frontend/",
-      "color": "foldercolorizer.color_005fff",
+      "isFolderOnly": true,
+      "color": "foldercolorizer.color_005fff"
+    },
+    {
+      "folderPath": "url-shortener/api/",
+      "color": "foldercolorizer.color_5f5faf",
       "isFolderOnly": true
     }
   ]

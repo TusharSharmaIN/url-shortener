@@ -5,8 +5,8 @@ import type Redis from 'ioredis';
 import { Url } from './models/url.entity';
 import { REDIS_CLIENT } from '../redis/redis.module';
 
-const STREAM_KEY = 'clicks-stream';
-const GROUP_NAME = 'clicks-consumer-group';
+const STREAM_KEY = 'url-shortener:clicks-stream';
+const GROUP_NAME = 'url-shortener:clicks-consumer-group';
 const CONSUMER_NAME = 'embedded-consumer-1';
 const BATCH_SIZE = 10;
 const BLOCK_MS = 5000;

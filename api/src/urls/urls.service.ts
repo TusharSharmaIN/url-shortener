@@ -10,7 +10,8 @@ import { KAFKA_PRODUCER } from '../kafka/kafka.module';
 import { Click } from './models/click.entity';
 
 const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
-const STREAM_KEY = 'clicks-stream';
+const KEY_PREFIX = 'url-shortener';
+const STREAM_KEY = `${KEY_PREFIX}:clicks-stream`;
 const TOPIC = 'clicks-topic';
 
 @Injectable()
@@ -41,7 +42,7 @@ export class UrlsService {
   }
 
   async findByShortCode(shortCode: string): Promise<string | null> {
-    const cached = await this.redis.get(`shortcode:${shortCode}`);
+    const cached = await this.redis.get(`${KEY_PREFIX}:shortcode:${shortCode}`);
     if (cached) {
       this.logger.log(`Cache HIT for ${shortCode}`);
       this.recordClick(shortCode);
@@ -53,7 +54,7 @@ export class UrlsService {
     if (!url) return null;
 
     await this.redis.set(
-      `shortcode:${shortCode}`,
+      `${KEY_PREFIX}:shortcode:${shortCode}`,
       url.longUrl,
       'EX',
       CACHE_TTL_SECONDS,
@@ -86,7 +87,7 @@ export class UrlsService {
     } else {
       this.redis
         .xadd(
-          'clicks-stream',
+          STREAM_KEY,
           '*',
           'shortCode',
           shortCode,

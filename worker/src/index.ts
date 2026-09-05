@@ -4,13 +4,16 @@ import { insertClicks } from "./db";
 import { logger } from "./logger";
 import { startKafkaConsumer } from "./kafka-consumer";
 
-const redis = new Redis({
-  host: process.env.REDIS_HOST || "localhost",
-  port: Number(process.env.REDIS_PORT) || 6379,
-});
+const redis = process.env.REDIS_URL
+  ? new Redis(process.env.REDIS_URL)
+  : new Redis({
+      host: process.env.REDIS_HOST || "localhost",
+      port: Number(process.env.REDIS_PORT) || 6379,
+    });
 
-const STREAM_KEY = "clicks-stream";
-const GROUP_NAME = "clicks-consumer-group";
+const STREAM_KEY = "url-shortener:clicks-stream";
+const GROUP_NAME = "url-shortener:clicks-consumer-group";
+
 const CONSUMER_NAME = "worker-1";
 const BATCH_SIZE = 10;
 const BLOCK_MS = 5000;

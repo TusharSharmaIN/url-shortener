@@ -8,11 +8,15 @@ export const REDIS_CLIENT = 'REDIS_CLIENT';
   providers: [
     {
       provide: REDIS_CLIENT,
-      useFactory: () =>
-        new Redis({
-          host: process.env.REDIS_HOST || 'localhost',
-          port: Number(process.env.REDIS_PORT) || 6379,
-        }),
+      useFactory: () => {
+        const url = process.env.REDIS_URL;
+        return url
+          ? new Redis(url)
+          : new Redis({
+              host: process.env.REDIS_HOST || 'localhost',
+              port: Number(process.env.REDIS_PORT) || 6379,
+            });
+      },
     },
   ],
   exports: [REDIS_CLIENT],

@@ -19,7 +19,7 @@ export class RateLimitService {
     limit: number,
     windowSeconds: number,
   ): Promise<RateLimitResult> {
-    const redisKey = `ratelimit:fixed:${key}`;
+    const redisKey = `url-shortener:ratelimit:fixed:${key}`;
     const count = await this.redis.incr(redisKey);
 
     if (count === 1) {
@@ -38,7 +38,7 @@ export class RateLimitService {
     limit: number,
     windowSeconds: number,
   ): Promise<RateLimitResult> {
-    const redisKey = `ratelimit:sliding:${key}`;
+    const redisKey = `url-shortener:ratelimit:sliding:${key}`;
     const now = Date.now();
     const windowStart = now - windowSeconds * 1000;
 
