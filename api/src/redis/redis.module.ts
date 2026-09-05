@@ -9,7 +9,11 @@ export const REDIS_CLIENT = 'REDIS_CLIENT';
     {
       provide: REDIS_CLIENT,
       useFactory: () => {
-        const url = process.env.REDIS_URL;
+        const url = process.env.REDIS_URL?.trim();
+        console.log(
+          'Redis connection mode:',
+          url ? 'URL' : 'host/port fallback',
+        );
         return url
           ? new Redis(url)
           : new Redis({
