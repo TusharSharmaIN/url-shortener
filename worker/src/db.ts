@@ -1,5 +1,8 @@
 import { Pool } from "pg";
-import "dotenv/config";
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+
+const isRemoteDb = process.env.POSTGRES_HOST?.includes("neon.tech");
 
 export const pool = new Pool({
   host: process.env.POSTGRES_HOST,
@@ -7,6 +10,7 @@ export const pool = new Pool({
   user: process.env.POSTGRES_USER,
   database: process.env.POSTGRES_DB,
   password: process.env.POSTGRES_PASSWORD,
+  ssl: isRemoteDb ? { rejectUnauthorized: false } : false,
 });
 
 export async function insertClicks(

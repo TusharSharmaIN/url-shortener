@@ -6,6 +6,8 @@ import { UrlsModule } from './urls/urls.module';
 import { RedisModule } from './redis/redis.module';
 import { KafkaModule } from './kafka/kafka.module';
 
+const isRemoteDb = process.env.POSTGRES_HOST?.includes('neon.tech');
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -15,6 +17,7 @@ import { KafkaModule } from './kafka/kafka.module';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
+      ssl: isRemoteDb ? { rejectUnauthorized: false } : false,
       autoLoadEntities: true,
       synchronize: true, // ONLY for dev — auto-creates tables from entities. Never use in production.
     }),
