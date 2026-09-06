@@ -12,8 +12,8 @@
     },
     {
       "folderPath": "url-shortener/api/",
-      "color": "foldercolorizer.color_5f5faf",
-      "isFolderOnly": true
+      "isFolderOnly": true,
+      "color": "foldercolorizer.color_5f5faf"
     }
   ]
 }

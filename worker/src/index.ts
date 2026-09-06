@@ -1,4 +1,5 @@
-import "dotenv/config";
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 import Redis from "ioredis";
 import { insertClicks } from "./db";
 import { logger } from "./logger";
